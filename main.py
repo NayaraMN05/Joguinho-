@@ -13,7 +13,6 @@ faseL  = 3360
 faseA = 630
 
 # Imagens
-playerImg = pygame.image.load("imagens/player.png")
 plataformaImg = pygame.image.load("imagens/plataforma1.png")
 coracaoImg = pygame.image.load("imagens/vida.png")
 inimigo1 = pygame.image.load("imagens/inimigo1.png")
@@ -21,6 +20,10 @@ bolha = pygame.image.load("imagens/bolhas1.png")
 porta = pygame.image.load("imagens/porta.png")
 livro = pygame.image.load("imagens/livro.png")
 estrela = pygame.image.load("imagens/estrela.png")
+charwalk1 = pygame.image.load("imagens/charwalk1.png")
+charwalk1 = pygame.transform.scale(charwalk1, (80, 40))
+charwalk2 = pygame.image.load("imagens/charwalk2.png")
+charwalk2 = pygame.transform.scale(charwalk2, (80, 40))
 
 # Botões
 BtnJogar = pygame.image.load("imagens/Btnjogar.png")
@@ -29,7 +32,7 @@ BtnSoundOn = pygame.image.load("imagens/BtnsoundOn.png")
 BtnSoundOff = pygame.image.load("imagens/BtnsoundOff.png")
 logo = pygame.image.load("imagens/Btnlogostudio.png")
 
-# ------------------- Música de Fundo -------------------
+# Músicas de Fases
 musicas_fases = [
     "sound/fase1.wav",
     "sound/fase2.wav",
@@ -62,7 +65,7 @@ VERMELHO_CLARO = (255, 0, 0)
 # Fonte
 fonte = pygame.font.Font(None, 60)
 
-# ------------------- Fases -------------------
+# Fases
 fases = [
     {
         "plataformas": [
@@ -184,6 +187,7 @@ def menu_inicial():
 
     BtnL = 300
     BtnA = 150
+
     # Redimensionando Botões
     BtnJogarImg =  pygame.transform.scale(BtnJogar, (BtnL, BtnA))
     BtnsounOnImg = pygame.transform.scale(BtnSoundOn, (BtnL, BtnA))
@@ -278,7 +282,9 @@ menu_inicial()
 
 class Player():
     def __init__(self):
-        self.img = playerImg
+        self.img1 = charwalk1
+        self.img2 = charwalk2
+        self.img = self.img1 # A imagem inicial é a charwalk1
         self.largura = self.img.get_width()
         self.altura = self.img.get_height()
         self.x = 100
@@ -287,16 +293,27 @@ class Player():
         self.no_chao = False
         self.vidas = 3
         self.pontuacao = 0
+        self.animacao_anda = 0
 
     def andarEsquerda(self):
         self.x -= velocidade
         if self.x < 0:
             self.x = 0
+        
+        # Alterna entre as imagens de animação ao andar para a esquerda
+        self.animacao_anda += 1
+        if self.animacao_anda % 10 == 0:  # Troca a cada 10 frames
+            self.img = self.img2 if self.img == self.img1 else self.img1
 
     def andarDireita(self):
         self.x += velocidade
         if self.x + self.largura > faseL:
             self.x = faseL - self.largura
+
+        # Alterna entre as imagens de animação ao andar para a direita
+        self.animacao_anda += 1
+        if self.animacao_anda % 10 == 0:  # Troca a cada 10 frames
+            self.img = self.img2 if self.img == self.img1 else self.img1
 
     def pula(self):
         if self.no_chao:
