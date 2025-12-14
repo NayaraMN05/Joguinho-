@@ -157,16 +157,44 @@ def cutscene_texto(cena):
         ]
     else:
         return  # cena inválida
-
+    
     indice = 0
     esperando = True
+    fonte_texto = pygame.font.Font(None, 40)
+                                   
+    # Tamanho da caixa
+    caixa_largura = 900
+    caixa_altura = 500
+
+    caixa_x = (telaL - caixa_largura) // 2
+    caixa_y = telaA - caixa_altura - 60
+    caixa_rect = pygame.Rect(caixa_x, caixa_y, caixa_largura, caixa_altura)
+
     while esperando:
         janela.fill(BRANCO if cena != "gameover" else PRETO)
 
-        # Mostrar a linha atual
-        desenhar_texto(linhas[indice], fonte, PRETO if cena != "gameover" else VERMELHO_CLARO, janela, 100, telaA//2 - 30)
-        desenhar_texto("Pressione ESPAÇO para continuar", pygame.font.Font(None, 40),
-                       PRETO if cena != "gameover" else VERMELHO_CLARO, janela, 100, telaA//2 + 40)
+        # Fundo da caixa
+        pygame.draw.rect(janela, BRANCO, caixa_rect, border_radius=12)
+        pygame.draw.rect(janela, PRETO, caixa_rect, 3, border_radius=12)
+
+        # Texto dentro da caixa
+        desenhar_texto_em_caixa(
+            janela,
+            linhas[indice],
+            pygame.font.Font(None, 40),
+            PRETO if cena != "gameover" else VERMELHO_CLARO,
+            caixa_rect
+        )
+
+        # Texto de instrução
+        desenhar_texto(
+            "Pressione ESPAÇO para continuar",
+            pygame.font.Font(None, 30),
+            PRETO if cena != "gameover" else VERMELHO_CLARO,
+            janela,
+            caixa_x + 20,
+            caixa_y + caixa_altura - 35
+        ) 
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -180,6 +208,44 @@ def cutscene_texto(cena):
 
         pygame.display.update()
         clock.tick(60)
+
+# Organizaão da Cut Scene
+def desenhar_texto_em_caixa(surface, texto, fonte, cor, rect, espacamento=5):
+    palavras = texto.split(" ")
+    linhas = []
+    linha_atual = ""
+
+    for palavra in palavras:
+        teste_linha = linha_atual + palavra + " "
+        if fonte.size(teste_linha)[0] <= rect.width - 20:
+            linha_atual = teste_linha
+        else:
+            linhas.append(linha_atual)
+            linha_atual = palavra + " "
+
+    linhas.append(linha_atual)
+
+    # Calcula altura total do texto
+    altura_texto = len(linhas) * (fonte.get_height() + espacamento)
+
+    # Centraliza verticalmente dentro da caixa, altura da caixa
+    altura_extra = (rect.height - altura_texto) // 5
+
+    # Centraliza verticalmente o texto na caixa
+    y_offset = rect.y + altura_extra
+
+
+    # Preenche a caixa com o fundo (ajustando o fundo se necessário)
+    pygame.draw.rect(surface, BRANCO, rect)  # fundo da caixa
+    pygame.draw.rect(surface, PRETO, rect, 3, border_radius=12)  # borda da caixa
+
+    # Desenha cada linha do texto dentro da caixa
+    for linha in linhas:
+        texto_render = fonte.render(linha, True, cor)
+        surface.blit(texto_render, (rect.x + 10, y_offset))
+        y_offset += texto_render.get_height() + espacamento
+
+
 
 def menu_inicial():
     global som_ativo
@@ -245,7 +311,7 @@ def menu_inicial():
 
                 # BOTÃO JOGAR
                 if clicou_em_mask(BtnJogarMask, posJogar, mouse_pos):
-                    parar_musica()
+                    # parar_musica()
                     cutscene_texto("inicio")
                     rodando_menu = False
 
@@ -529,6 +595,7 @@ def tela_game_over():
 
         pygame.display.update()
         clock.tick(60)
+
 
 # ------------------- Inicialização do jogo -------------------
 
