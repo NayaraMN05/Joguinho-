@@ -5,18 +5,18 @@ som_ativo = True
 async def game_loop():
     pygame.init()
 
-    # Tela
+    # Tela do Jogo
     telaL = 1120
     telaA = 630
     janela = pygame.display.set_mode((telaL, telaA))
-    pygame.display.set_caption("Joguinho!")
+    pygame.display.set_caption("O Legado de Cid")
     clock = pygame.time.Clock()
 
-    # Fase
+    # Tamanho da Tela da Fase
     faseL  = 3360
     faseA = 630
 
-    # Imagens
+    # -------------- Imagens --------------
     plataformaImg = pygame.image.load("imagens/plataforma1.png")
     pats = pygame.image.load("imagens/pats.png")
 
@@ -37,6 +37,7 @@ async def game_loop():
 
     charwalk1 = pygame.image.load("imagens/walk1.png")
     charwalk1 = pygame.transform.scale(charwalk1, (80, 40))
+
     charwalk2 = pygame.image.load("imagens/walk2.png")
     charwalk2 = pygame.transform.scale(charwalk2, (80, 40))
 
@@ -46,13 +47,17 @@ async def game_loop():
     BtnSoundOn = pygame.image.load("imagens/BtnsoundOn.png")
     BtnSoundOff = pygame.image.load("imagens/BtnsoundOff.png")
     logo = pygame.image.load("imagens/Btnlogostudio.png")
+    logo2 = pygame.image.load("imagens/logo2.png")
 
-    # Músicas de Fases
+
+     # -------------- Som --------------
+    # Músicas das Fases
     musicas_fases = [
         "sound/fase1.wav",
         "sound/fase2.wav",
         "sound/fase3.wav"
     ]
+
     # Som
     somBolhas = pygame.mixer.Sound("sound/Bolhas.wav")
     somgameover = pygame.mixer.Sound("sound/GameOver.wav")
@@ -66,6 +71,7 @@ async def game_loop():
     forca_pulo = 20
     nivel_atual = 0
     bolhasTotal = 0
+    distanciaChao = 20
 
     BRANCO = (255, 255, 255)
     PRETO = (0, 0, 0)
@@ -80,47 +86,47 @@ async def game_loop():
     # Fases
     fases = [
 
-            #2
+            #1
         {
             "plataformas": [
                 (685, 470),
-                (1050, 470),
-                (1348, 468),
-                (1512, 550),
-                (1678, 392),
+                (900, 280),
+                (1100, 100),
+                (1512, 480),
+                (1678, 480),
                 (2042, 420),
                 (2230, 348),
                 (2464, 490),
                 (2820, 396),
                 (2969, 464),
             ],
-            "inimigos": [(930, 584), (1927, 584),(2150,584)],
-            "bolhas": [(1308, 220), (1744, 324), (2848, 294)],
+            "inimigos": [(930, 554), (1030,554), (1130,554), (1927, 554), (2030,554),(2150,554)],
+            "bolhas": [(1150, 40), (1744, 324), (2860, 290)],
             "porta": (3200, 500),
             "faseL": 3360,
             "vidasIniciais": 3
         },
 
-        #1
+        #2
         {
             "plataformas": [
                 (310, 450),
-                (625, 270),
+                (610, 270),
                 (810, 428),
                 (992, 270),
                 (1350, 200),
                 (1700, 235),
                 (1420, 487),
-                (1870, 465),
                 (2043, 550),
-                (2221, 470),
+                (2400, 550),
                 (2400, 380),
-                (2580, 380),
-                (2850, 235),
+                (2400, 200),
+                (2600, 100),
+                (2900, 200),
                 (3135, 308),
             ],
-            "inimigos": [(518,545),(950, 545),(867, 340),(1442, 545),(1900,584),(1765, 160)],
-            "bolhas": [(490, 300),(1722, 200),(2460, 160)],
+            "inimigos": [(518,554), (620,554), (720,554),(820,554),(950, 554),(867, 340),(1442, 554),(1900,554 ),(1765, 160)],
+            "bolhas": [(830, 100),(1722, 200),(2650, 35)],
             "porta": (3170, 200),
             "faseL": 3360,
             "vidasIniciais": 3
@@ -130,24 +136,22 @@ async def game_loop():
         {
             "plataformas": [
                 (284, 473),
-                (446, 473),
-                (634, 473),
+                (470, 473),
                 (799, 307),
-                (973, 471),
                 (1116, 276),
-                (1304, 396),
                 (1487, 342),
                 (1649, 342),
                 (1916, 220),
                 (1916, 475),
                 (2223, 366),
-                (2564, 252),
+                (2564, 470),
                 (2868, 410),
+                (2870, 190),
                 (3145, 321),
             ],
-            "inimigos": [(500,554),(600,554),(700,554),(800,554),(900,554),(1026, 554),(1200,554), (1340, 322),(1500,554),(1600,554),(1700,554),(1850,554),(2000,554),(2100,554),(2200,554),(2300,554),(2400,554),(2500,554),(2700,554), (2970, 554)],
-            "bolhas": [(1350, 51), (1951, 53), (3189,290)],
-            "porta": (3200, 500),
+            "inimigos": [(500,565),(600,565),(700,565),(800,565),(900,565),(1026, 565),(1200,565), (1340, 322),(1500,565),(1600,565),(1700,565),(1850,565),(2000,565),(2100,565),(2200,565),(2300,565),(2400,565),(2700,565), (2970, 565)],
+            "bolhas": [(1350, 51), (1951, 53), (2575,565)],
+            "porta": (2870, 40),
             "faseL": 3360,
             "vidasIniciais": 3
         }
@@ -297,97 +301,97 @@ async def game_loop():
         BtnA = 150
 
         # Redimensionando Botões
+        logoImg = pygame.transform.scale(logo, (150, 150))
         BtnJogarImg =  pygame.transform.scale(BtnJogar, (BtnL, BtnA))
+        BtnSairImg =  pygame.transform.scale(BtnSair, (380, 200))
         BtnsounOnImg = pygame.transform.scale(BtnSoundOn, (BtnL, BtnA))
         BtnsounOffImg = pygame.transform.scale(BtnSoundOff, (BtnL, BtnA))
-        BtnSairImg =  pygame.transform.scale(BtnSair, (380, 200))
-        logoImg = pygame.transform.scale(logo, (150, 150))
-        patsImg = pygame.transform.scale(pats, (telaL, 100))
-        charImg = pygame.transform.scale(charwalk1, (200, 200))
+        patsImg = pygame.transform.scale(pats, (telaL, 80))
+        charImg = pygame.transform.scale(logo2, (200, 200)) # TROCAR DEPOIS
 
         # Posição dos botões
         posLogo = (telaL//2 - logoImg.get_width()//0.35, 100)
         posJogar = (telaL//2 - BtnJogarImg.get_width()//0.585, 255)
         posSair = (telaL//2 - BtnSairImg.get_width()//0.7, 275)
-        posSomOn = (telaL//2 - BtnsounOnImg.get_width()//0.55, 345)
-        posSomOff = (telaL//2 - BtnsounOffImg.get_width()//0.55, 345)
-        posPats = (telaL//2 - patsImg.get_width()//2, 500)
-        posChar = (700, 300)
+        posSom = (telaL//2 - BtnsounOnImg.get_width()//0.55, 345)
+        posPats = (telaL//2 - patsImg.get_width()//2, 550)
+        posChar = (telaL//2 - logo2.get_width()//50, 150)
         
-        # Máscaras para clique pixel-perfect
-        BtnJogarMask = pygame.mask.from_surface(BtnJogarImg)
-        BtnSairMask = pygame.mask.from_surface(BtnSairImg)
-        BtnsoundOnMask = pygame.mask.from_surface(BtnsounOnImg)
-        BtnsoundOffMask = pygame.mask.from_surface(BtnsounOffImg)
-        
-        mouse_pos = None
+        # Rect para colisão e reconhecimento de cliques
+        BtnJogarRect = pygame.Rect(
+            posJogar[0] + 100, # posição x da colisão do botão
+            posJogar[0] + 240, # posição y da posição do botão
+            BtnJogarImg.get_width() - 190,
+            BtnJogarImg.get_height() - 110,
+        )
+
+        BtnSairRect = pygame.Rect(
+            posSair[0] + 150,
+            posSair[0] + 350,
+            BtnSairImg.get_width() - 300,
+            BtnSairImg.get_height() - 160,
+        )
+
+        BtnsoundRect = pygame.Rect(
+            posSom[0] + 160,
+            posSom[1] + 90, 
+            BtnsounOnImg.get_width() - 250,
+            BtnsounOnImg.get_height() - 110,
+        )
+    
         rodando_menu = True
-
-        # Função auxiliar para checar clique na máscara
-        def clicou_em_mask(mask, pos_elemento,  clique_pos):
-            if clique_pos is None:
-                return 0
-
-            x = clique_pos[0] - pos_elemento[0]
-            y = clique_pos[1] - pos_elemento[1]
-
-            if 0 <= x < mask.get_size()[0] and 0 <= y < mask.get_size()[1]:
-                return mask.get_at((x, y))
-            return 0
 
         while rodando_menu:
             clock.tick(60)
+
+            # Desenhando os botões na tela do Menu Iniciar
             janela.fill(BRANCO)
             janela.blit(logoImg, posLogo)
             janela.blit(BtnJogarImg, posJogar)
             janela.blit(BtnSairImg, posSair)
             janela.blit(patsImg, posPats)
             janela.blit(charImg, posChar)
-
-            # Desenha botão de som conforme estado
             if som_ativo:
-                janela.blit(BtnsounOnImg, posSomOn)
+                janela.blit(BtnsounOnImg, (posSom))
             else:
-                janela.blit(BtnsounOffImg, posSomOff)
+                janela.blit(BtnsounOffImg, (16, 383))
 
             # Eventos
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-                    mouse_pos = evento.pos  # guarda posição do clique
 
+                if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
                     # BOTÃO JOGAR
-                    if clicou_em_mask(BtnJogarMask, posJogar, mouse_pos):
-                        # parar_musica()
+                    if BtnJogarRect.collidepoint(evento.pos):
                         await cutscene_texto("inicio")
                         rodando_menu = False
 
                     # BOTÃO SAIR
-                    elif clicou_em_mask(BtnSairMask, posSair, mouse_pos):
+                    elif BtnSairRect.collidepoint(evento.pos):
                         pygame.quit()
                         sys.exit()
 
                     # BOTÃO SOM
-                    elif som_ativo and clicou_em_mask(BtnsoundOnMask, posSomOn, mouse_pos):
+                    elif som_ativo and BtnsoundRect.collidepoint(evento.pos):
                         som_ativo = False
                         parar_musica()
                         pygame.mixer.stop()
 
-                    elif not som_ativo and clicou_em_mask(BtnsoundOffMask, posSomOff, mouse_pos):
+                    elif not som_ativo and BtnsoundRect.collidepoint(evento.pos):
                         som_ativo = True
                         tocar_musica(somMenu)
 
-                elif som_ativo and clicou_em_mask(BtnsoundOnMask, posSomOn, mouse_pos):
-                    som_ativo = False
-                    parar_musica()
-                    pygame.mixer.stop()
+                    elif som_ativo and BtnsoundRect.collidepoint(evento.pos):
+                        som_ativo = False
+                        parar_musica()
+                        pygame.mixer.stop()
 
-                elif not som_ativo and clicou_em_mask(BtnsoundOffMask, posSomOff, mouse_pos):
-                    som_ativo = True
-                    tocar_musica(somMenu)
-                mouse_pos = None   
+                    elif not som_ativo and BtnsoundRect.collidepoint(evento.pos):
+                        som_ativo = True
+                        tocar_musica(somMenu)
+
 
             pygame.display.update()
             await asyncio.sleep(0)
@@ -403,9 +407,10 @@ async def game_loop():
             self.largura = self.img.get_width()
             self.altura = self.img.get_height()
             self.x = 100
-            self.y = faseA - self.altura - 50
+            self.y = faseA - self.altura - distanciaChao
             self.vel_y = 0
-            self.no_chao = False
+            self.chao_y = faseA - distanciaChao
+            self.no_chao = True
             self.vidas = 3
             self.pontuacao = 0
             self.animacao_anda = 0
@@ -447,9 +452,9 @@ async def game_loop():
                         self.vel_y = 0
                         self.no_chao = True
 
-            if self.y + self.altura >= faseA:
-                self.y = faseA - self.altura
-                self.vel_y = 0
+            if self.y + self.altura >= faseA - distanciaChao:
+                self.y = faseA - distanciaChao - self.altura
+                self.vel_y = 1
                 self.no_chao = True
 
         def colisaoInimigo(self, inimigos):
@@ -545,7 +550,9 @@ async def game_loop():
 
         # Resetar player sem alterar vidas
         player.x = 100
-        player.y = faseA - player.altura - 50
+        player.y = faseA - player.altura - distanciaChao
+        player.vel_y = 1
+        player.no_chao = False
 
         pygame.mixer.music.stop() # Para música anterior
         musicas(nivel)
@@ -721,7 +728,9 @@ async def game_loop():
                 # carrega próxima fase normalmente
                 carregarFase(nivel_atual)
                 player.x = 100
-                player.y = faseA - player.altura - 50
+                player.y = faseA - player.altura - distanciaChao
+                player.vel_y = 1
+                player.no_chao = False
             else:
                 # Última fase concluída
                 if bolhasTotal >= 6:
