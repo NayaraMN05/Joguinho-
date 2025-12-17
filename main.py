@@ -1,16 +1,17 @@
-import pygame, sys, asyncio
+import pygame, asyncio, platform
 
 
 som_ativo = True
 async def game_loop():
     pygame.init()
+    pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+    
 
     # Tela do Jogo
     telaL = 1120
     telaA = 630
     janela = pygame.display.set_mode((telaL, telaA))
     pygame.display.set_caption("O Legado de Cid")
-    clock = pygame.time.Clock()
 
     # Tamanho da Tela da Fase
     faseL  = 3360
@@ -41,6 +42,117 @@ async def game_loop():
     charwalk2 = pygame.image.load("imagens/walk2.png")
     charwalk2 = pygame.transform.scale(charwalk2, (80, 40))
 
+    async def menu_inicial():
+        global som_ativo, rodando
+        tocar_musica(somMenu)
+
+        BtnL = 300
+        BtnA = 150
+
+        # Redimensionando Botões
+        logoImg = pygame.transform.scale(logo, (150, 150))
+        BtnJogarImg =  pygame.transform.scale(BtnJogar, (BtnL, BtnA))
+        BtnSairImg =  pygame.transform.scale(BtnSair, (380, 200))
+        BtnsounOnImg = pygame.transform.scale(BtnSoundOn, (BtnL, BtnA))
+        BtnsounOffImg = pygame.transform.scale(BtnSoundOff, (BtnL, BtnA))
+        patsImg = pygame.transform.scale(pats, (telaL, 80))
+        charImg = pygame.transform.scale(logo2, (200, 200)) # TROCAR DEPOIS
+
+        # Posição dos botões
+        posLogo = (telaL//2 - logoImg.get_width()//0.35, 100)
+        posJogar = (telaL//2 - BtnJogarImg.get_width()//0.585, 255)
+        posSair = (telaL//2 - BtnSairImg.get_width()//0.7, 275)
+        posSom = (telaL//2 - BtnsounOnImg.get_width()//0.55, 345)
+        posPats = (telaL//2 - patsImg.get_width()//2, 550)
+        posChar = (telaL//2 - logo2.get_width()//50, 150)
+        
+        # Rect para colisão e reconhecimento de cliques
+        BtnJogarRect = pygame.Rect(
+            posJogar[0] + 100, # posição x da colisão do botão
+            posJogar[1] + 40, # posição y da posição do botão
+            BtnJogarImg.get_width() - 190,
+            BtnJogarImg.get_height() - 110,
+        )
+
+        BtnSairRect = pygame.Rect(
+            posSair[0] + 150,
+            posSair[1] + 90,
+            BtnSairImg.get_width() - 300,
+            BtnSairImg.get_height() - 160,
+        )
+
+        BtnsoundRect = pygame.Rect(
+            posSom[0] + 160,
+            posSom[1] + 90, 
+            BtnsounOnImg.get_width() - 250,
+            BtnsounOnImg.get_height() - 110,
+        )
+    
+        rodando_menu = True
+
+        while rodando_menu:
+            await asyncio.sleep(0)
+
+            # Desenhando os botões na tela do Menu Iniciar
+            janela.fill(BRANCO)
+            janela.blit(logoImg, posLogo)
+            janela.blit(BtnJogarImg, posJogar)
+            janela.blit(BtnSairImg, posSair)
+            janela.blit(patsImg, posPats)
+            janela.blit(charImg, posChar)
+            if som_ativo:
+                janela.blit(BtnsounOnImg, (posSom))
+            else:
+                janela.blit(BtnsounOffImg, (16, 383))
+
+            # Eventos
+            for evento in pygame.event.get():
+                if evento.type == pygame.QUIT:
+                    pygame.quit()
+
+                if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+                    # BOTÃO JOGAR
+                    if BtnJogarRect.collidepoint(evento.pos):
+                        await cutscene_texto("inicio")
+                        rodando_menu = False
+
+                    # BOTÃO SAIR
+                    elif BtnSairRect.collidepoint(evento.pos):
+                        sairWeb()
+                        pygame.quit()
+
+                    # BOTÃO SOM
+                    elif som_ativo and BtnsoundRect.collidepoint(evento.pos):
+                        som_ativo = False
+                        parar_musica()
+                        pygame.mixer.stop()
+
+                    elif not som_ativo and BtnsoundRect.collidepoint(evento.pos):
+                        som_ativo = True
+                        tocar_musica(somMenu)
+
+                    elif som_ativo and BtnsoundRect.collidepoint(evento.pos):
+                        som_ativo = False
+                        parar_musica()
+                        pygame.mixer.stop()
+
+                    elif not som_ativo and BtnsoundRect.collidepoint(evento.pos):
+                        som_ativo = True
+                        tocar_musica(somMenu)
+            """
+            # DEBUG - botão jogar
+            pygame.draw.rect(janela, (255, 0, 0), BtnJogarRect, 2)
+            # DEBUG - botão sair
+            pygame.draw.rect(janela, (255, 0, 0), BtnSairRect, 2)
+            # DEBUG - botão som
+            pygame.draw.rect(janela, (255, 0, 0), BtnsoundRect, 2)
+            """
+
+
+            pygame.display.update()
+            await asyncio.sleep(0.016) # 60 FPS
+
+
     # Botões
     BtnJogar = pygame.image.load("imagens/Btnjogar.png")
     BtnSair = pygame.image.load("imagens/Btnsair.png")
@@ -63,7 +175,7 @@ async def game_loop():
     somgameover = pygame.mixer.Sound("sound/GameOver.wav")
     somlixo = pygame.mixer.Sound("sound/Lixo.wav")
     somMenu = "sound/menu.wav"
-    somwin = pygame.mixer.Sound("sound/win.wav")
+    # somwin = pygame.mixer.Sound("sound/win.wav") COLOCAR DEPOIS
 
     # Velocidade e gravidade
     velocidade = 5
@@ -72,6 +184,8 @@ async def game_loop():
     nivel_atual = 0
     bolhasTotal = 0
     distanciaChao = 20
+    rodando = True
+    acabouJogo = False
 
     BRANCO = (255, 255, 255)
     PRETO = (0, 0, 0)
@@ -157,6 +271,13 @@ async def game_loop():
         }
     ]
 
+    def sairWeb():
+        if platform.system() == "Emscripten":
+            import js
+            js.window.location.href = "https://corallium-studio.itch.io/o-legado-de-cid"
+        else:
+            pygame.quit()
+
     def musicas(nivel):
         global som_ativo
         if som_ativo:
@@ -206,7 +327,6 @@ async def game_loop():
         
         indice = 0
         esperando = True
-        fonte_texto = pygame.font.Font(None, 40)
                                     
         # Tamanho da caixa
         caixa_largura = 900
@@ -245,13 +365,20 @@ async def game_loop():
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT:
                     pygame.quit()
-                    sys.exit()
+
+                # passar cutscene com botão do mouse
+                if evento.type == pygame.MOUSEBUTTONDOWN:
+                        indice += 1
+                        if indice >= len(linhas):
+                            esperando = False
+
+                # passar cutscene com espaço            
                 if evento.type == pygame.KEYDOWN:
                     if evento.key == pygame.K_SPACE:
                         indice += 1
                         if indice >= len(linhas):
                             esperando = False
-
+                            
             pygame.display.update()
             await asyncio.sleep(0)
 
@@ -290,111 +417,6 @@ async def game_loop():
             texto_render = fonte.render(linha, True, cor)
             surface.blit(texto_render, (rect.x + 10, y_offset))
             y_offset += texto_render.get_height() + espacamento
-
-
-
-    async def menu_inicial():
-        global som_ativo
-        tocar_musica(somMenu)
-
-        BtnL = 300
-        BtnA = 150
-
-        # Redimensionando Botões
-        logoImg = pygame.transform.scale(logo, (150, 150))
-        BtnJogarImg =  pygame.transform.scale(BtnJogar, (BtnL, BtnA))
-        BtnSairImg =  pygame.transform.scale(BtnSair, (380, 200))
-        BtnsounOnImg = pygame.transform.scale(BtnSoundOn, (BtnL, BtnA))
-        BtnsounOffImg = pygame.transform.scale(BtnSoundOff, (BtnL, BtnA))
-        patsImg = pygame.transform.scale(pats, (telaL, 80))
-        charImg = pygame.transform.scale(logo2, (200, 200)) # TROCAR DEPOIS
-
-        # Posição dos botões
-        posLogo = (telaL//2 - logoImg.get_width()//0.35, 100)
-        posJogar = (telaL//2 - BtnJogarImg.get_width()//0.585, 255)
-        posSair = (telaL//2 - BtnSairImg.get_width()//0.7, 275)
-        posSom = (telaL//2 - BtnsounOnImg.get_width()//0.55, 345)
-        posPats = (telaL//2 - patsImg.get_width()//2, 550)
-        posChar = (telaL//2 - logo2.get_width()//50, 150)
-        
-        # Rect para colisão e reconhecimento de cliques
-        BtnJogarRect = pygame.Rect(
-            posJogar[0] + 100, # posição x da colisão do botão
-            posJogar[0] + 240, # posição y da posição do botão
-            BtnJogarImg.get_width() - 190,
-            BtnJogarImg.get_height() - 110,
-        )
-
-        BtnSairRect = pygame.Rect(
-            posSair[0] + 150,
-            posSair[0] + 350,
-            BtnSairImg.get_width() - 300,
-            BtnSairImg.get_height() - 160,
-        )
-
-        BtnsoundRect = pygame.Rect(
-            posSom[0] + 160,
-            posSom[1] + 90, 
-            BtnsounOnImg.get_width() - 250,
-            BtnsounOnImg.get_height() - 110,
-        )
-    
-        rodando_menu = True
-
-        while rodando_menu:
-            clock.tick(60)
-
-            # Desenhando os botões na tela do Menu Iniciar
-            janela.fill(BRANCO)
-            janela.blit(logoImg, posLogo)
-            janela.blit(BtnJogarImg, posJogar)
-            janela.blit(BtnSairImg, posSair)
-            janela.blit(patsImg, posPats)
-            janela.blit(charImg, posChar)
-            if som_ativo:
-                janela.blit(BtnsounOnImg, (posSom))
-            else:
-                janela.blit(BtnsounOffImg, (16, 383))
-
-            # Eventos
-            for evento in pygame.event.get():
-                if evento.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-                if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-                    # BOTÃO JOGAR
-                    if BtnJogarRect.collidepoint(evento.pos):
-                        await cutscene_texto("inicio")
-                        rodando_menu = False
-
-                    # BOTÃO SAIR
-                    elif BtnSairRect.collidepoint(evento.pos):
-                        pygame.quit()
-                        sys.exit()
-
-                    # BOTÃO SOM
-                    elif som_ativo and BtnsoundRect.collidepoint(evento.pos):
-                        som_ativo = False
-                        parar_musica()
-                        pygame.mixer.stop()
-
-                    elif not som_ativo and BtnsoundRect.collidepoint(evento.pos):
-                        som_ativo = True
-                        tocar_musica(somMenu)
-
-                    elif som_ativo and BtnsoundRect.collidepoint(evento.pos):
-                        som_ativo = False
-                        parar_musica()
-                        pygame.mixer.stop()
-
-                    elif not som_ativo and BtnsoundRect.collidepoint(evento.pos):
-                        som_ativo = True
-                        tocar_musica(somMenu)
-
-
-            pygame.display.update()
-            await asyncio.sleep(0)
 
     # Chama o menu antes do jogo
     await menu_inicial()
@@ -559,15 +581,27 @@ async def game_loop():
         
         
     def reiniciar_jogo():
-        global nivel_atual, player
+        global nivel_atual, acabouJogo
         nivel_atual = 0
-        player = Player()  # Recria player e reseta vidas/pontuação
+        acabouJogo = False
+
+        # Refazendo as infos do Player quando reiniciar o jogo
+        player.vidas = 3
+        player.pontuacao = 0
+        player.x = 100
+        player.y = faseA - player.altura - distanciaChao
+        player.vel_y = 1
+        player.no_chao = False
+
+
+
         carregarFase(nivel_atual)
+        
 
     async def tela_pontuacao():
         mostrando = True
         while mostrando:
-            clock.tick(60)
+            await asyncio.sleep(0)
             janela.fill(BRANCO)
 
             # Mostrar estrelas
@@ -592,17 +626,16 @@ async def game_loop():
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT:
                     pygame.quit()
-                    sys.exit()
+
                 if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
                     if botao_continuar.collidepoint(evento.pos):
                         mostrando = False
 
             pygame.display.update()
-            await asyncio.sleep(0)
 
     async def tela_game_over():
         global som_ativo
-        clock.tick(60)
+        await asyncio.sleep(0)
         # Parar música ao perder todas as vidas 
         pygame.mixer.music.stop()
 
@@ -620,7 +653,7 @@ async def game_loop():
             # Botão Reiniciar
             botao_reiniciar = pygame.Rect(telaL//2 - 100, 300, 200, 60)
         
-        # Botão Sair
+            # Botão Sair
             botao_sair = pygame.Rect(telaL//2 - 100, 400, 200, 60)
 
             mouse_pos = pygame.mouse.get_pos()
@@ -645,14 +678,13 @@ async def game_loop():
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT:
                     pygame.quit()
-                    sys.exit()
+                    
                 if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
                     if botao_reiniciar.collidepoint(evento.pos):
-                        rodando_game_over = False
                         reiniciar_jogo()
+                        return
                     elif botao_sair.collidepoint(evento.pos):
-                        pygame.quit()
-                        sys.exit()
+                        sairWeb()
 
             pygame.display.update()
             await asyncio.sleep(0)
@@ -662,11 +694,8 @@ async def game_loop():
     player = Player()
     carregarFase(nivel_atual)
 
-
     # Colocando o jogo para rodar, na web :)
-    rodando = True
     while rodando:
-        clock.tick(60)
         eventos = pygame.event.get()
 
         for evento in eventos:
@@ -687,8 +716,10 @@ async def game_loop():
         cameraX = player.x - telaL // 2
         cameraX = max(0, min(cameraX, faseL - telaL))
 
-        if player.vidas <= 0:
+        if player.vidas <= 0 and not acabouJogo:
+            acabouJogo = True
             await tela_game_over()
+            acabouJogo = False
             continue
 
         # Fundo
@@ -738,13 +769,14 @@ async def game_loop():
                 else:
                     await cutscene_texto("gameover")  # mostra cutscene de game over
                 pygame.quit()
-                sys.exit()
 
         # Vidas
         player.desenharVidas()
 
         pygame.display.update()
         await asyncio.sleep(0)
+
     
     pygame.quit()
+
 asyncio.run(game_loop())
